@@ -1,0 +1,17 @@
+batch_size: 200
+dataset: equidistant
+eval_frequency: 100
+exps_folder: experiments/exp_2024-05-14-22-25-58_da39a3ee
+fraction:
+- 0.8
+learning_rate:
+- 0.001
+num_samples:
+- 100
+- 200
+requireGPU: true
+scaling_factor: 8
+total_steps: 50000
+train_seed: 19952
+weight_decay:
+- 0.0001

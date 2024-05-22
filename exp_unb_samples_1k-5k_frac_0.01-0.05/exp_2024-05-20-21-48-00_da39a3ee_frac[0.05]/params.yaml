@@ -1,0 +1,18 @@
+batch_size: 200
+dataset: similar
+eval_frequency: 100
+exps_folder: experiments/exp_2024-05-20-21-48-00_da39a3ee
+fraction:
+- 0.05
+learning_rate:
+- 0.001
+model: mlp
+num_samples:
+- 1000
+- 5000
+requireGPU: true
+scaling_factor: 8
+total_steps: 50000
+train_seed: 22554
+weight_decay:
+- 0.0001
