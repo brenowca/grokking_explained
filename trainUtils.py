@@ -131,6 +131,8 @@ def train_loop(model_init, device, total_steps, lr, weight_decay, scaling_factor
     with tqdm(total=total_steps) as pbar:
         while step < total_steps:
             for images, labels in train_loader:
+                if step >= total_steps:
+                    break
                 images, labels = images.to(device), labels.to(device).flatten()
                 model.train()
                 optimizer.zero_grad()
@@ -160,8 +162,9 @@ def train_loop(model_init, device, total_steps, lr, weight_decay, scaling_factor
                         save_model(model, results_folder, f"{model.name}_step_{step+1}.pth")
                     
                     # print(f'Step [{step + 1}/{total_step}], Loss: {loss.item():.4f}')
-                step +=1
+                step += 1
                 pbar.update(1)
+
 
     # Append the results to the list
     results = {
