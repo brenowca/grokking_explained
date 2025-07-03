@@ -66,8 +66,9 @@ if __name__ == "__main__":
     
     # Get unique experiment name
     timestr = time.strftime("%Y-%m-%d-%H-%M-%S")
-    hashlib.sha1().update(str(time.time()).encode("utf-8"))
-    hash = hashlib.sha1().hexdigest()[:8]
+    sha = hashlib.sha1()
+    sha.update(str(time.time()).encode("utf-8"))
+    hash = sha.hexdigest()[:8]
     print(f"Running exp {timestr}_{hash}")
 
     # Define hyperparameters
