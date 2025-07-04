@@ -1,7 +1,5 @@
 # Basic data manipulation
-import pandas as pd
 import numpy as np
-from sklearn.model_selection import train_test_split
 
 # ML
 from sklearn.ensemble import RandomForestClassifier
@@ -11,6 +9,7 @@ from sklearn.metrics import accuracy_score
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from torch.utils.data import Subset
 
 # Utils
 from tqdm import tqdm
@@ -92,8 +91,8 @@ def eval_model(model, test_loader, device):
     with torch.no_grad():
         correct = 0
         total = 0
-        for images, labels in test_loader:
-            images, labels = images.to(device), labels.to(device).flatten()
+        for data in test_loader:
+            images, labels = data[0].to(device), data[1].to(device).flatten()
             outputs = model(images)
             _, predicted = torch.max(outputs.data, 1)
             total += labels.size(0)
@@ -103,7 +102,8 @@ def eval_model(model, test_loader, device):
 def save_model(model, results_folder, checkpoint_name):
     os.makedirs(results_folder, exist_ok=True)
     torch.save(model.state_dict(), path_join(results_folder, checkpoint_name))
-    
+
+
 def load_model(empty_model, folder, checkpoint_name, device):
     empty_model.load_state_dict(torch.load(path_join(folder, checkpoint_name)))
     empty_model.to(device)
@@ -130,10 +130,8 @@ def train_loop(model_init, device, total_steps, lr, weight_decay, scaling_factor
     step = 0
     with tqdm(total=total_steps) as pbar:
         while step < total_steps:
-            for images, labels in train_loader:
-                if step >= total_steps:
-                    break
-                images, labels = images.to(device), labels.to(device).flatten()
+            for data in train_loader:
+                images, labels = data[0].to(device), data[1].to(device).flatten()
                 model.train()
                 optimizer.zero_grad()
                 outputs = model(images)
@@ -260,6 +258,8 @@ def calc_acc_rf_train_double_it(data_fracs, num_runs, train_df_doubleit, test_df
 def value_to_list(value_or_list):
     # if value_or_list is None:
     #     return []
+    if value_or_list is None:
+        return []
     if hasattr(value_or_list, '__iter__'):
         return list(value_or_list)
     return [value_or_list]
@@ -274,7 +274,11 @@ def run_on_dataset(model_init, list_num_samples=None, sample_method=random_sampl
     # Initialize lists to store results
     results = []
     
-    list_num_samples = value_to_list(list_num_samples)
+    if list_num_samples is None:
+        list_num_samples = [len(train_dataset)]
+    else: 
+        list_num_samples = value_to_list(list_num_samples)
+
     if cumulative_train_samples:
         list_num_samples = sorted(list_num_samples, reverse=True)
     
