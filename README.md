@@ -22,25 +22,42 @@ This project contains a collection of small experiments analysing **grokking** b
 > If you are using a Mac M1, M2 or M3 you might need to install PyTorch Geometric from source using the instructions in [their webpage](https://pytorch-geometric.readthedocs.io/en/latest/notes/installation.html#installation-from-source).
 
 ### Run the Notebooks
-The notebooks contain helper functions, data-generation code and further analysis (`grokking_data.ipynb`, `Clustering.ipynb`, etc.).  Start Jupyter with:
+The notebooks contain helper functions, data-generation code and further analysis (`grokking_data.ipynb`, `Clustering.ipynb`, etc.).
+Each notebook or script covers part of the analysis or experiments showed in the paper.
 
+1. Description of the synthetic datasets
+    > Plots to better grasp the properties of the datasets
+    > * [Synthetic equidistant dataset creation](1_creating_and_sampling_supergroups_equidistants.ipynb)
+    > * [Synthetic equivariant dataset creation](1_creating_and_sampling_supergroups_equivariant.ipynb)
+2. Experiments on the synthetic equidistant dataset
+    > The notebook presents only one run for each kind of experiment. The experiments in the paper use multiple runs using the [unbalanced sampling script](grokking_unbalanced.py) and  the [balanced sampling script](grokking_balanced.py).
+3. Experiments on the synthetic equivariant dataset
+    > The notebook presents only one run for each kind of experiment. The experiments in the paper use multiple runs using the [unbalanced sampling script](grokking_unbalanced.py) and  the [balanced sampling script](grokking_balanced.py).
+4. Initial experiments on MNIST
+    > Exploratory analysis of the MNIST dataset
+5. Clustering Extended MNIST classes
+    > Process to create different clusters for each class, visualizing the result and defining the most separated cluster [Clustering notebook](5_Clustering_Extended_MNIST_classes.ipynb).
+6. Experiments on clustered MNIST classes
+    > Similar set of experiments than the previous ones, but on clustered MNIST.
+
+
+#### How to run the notebooks
+
+To initialize your jupyter notebook server and run the notebooks you can do the following:
 ```bash
 python -m jupyter notebook --notebook-dir=.
 ```
 
-### Run the Experiment Scripts
-Longer running experiments can be launched directly from the command line.  For example, to train on MNIST:
-
+#### Opening the notebooks as slide presentations
 ```bash
-python grokking_mnist.py --requireGPU --total_steps 100000
+jupyter nbconvert <notebook name> --to slides --post serve
 ```
 
-Both `grokking_mnist.py` and `grokking_unbalanced.py` expose a number of command line arguments (learning rate, batch size, dataset path, etc.) so you can sweep over different configurations.
-
-### Opening the Notebooks as Slides
-
+### Run the experiments scripts
+Some experiments are not performed in notebooks, because they take hours in a cluster structure, so the chances that my connection was interrupted in the middle of the process is high, also I wanted to start multiple experiments in parallel.
+You can get a description of every script parameters by running `python <scriptname.py> --help` where `<scriptname.py>`stands for the path to the specific script being used. E.g.:
 ```bash
-jupyter nbconvert grokking_data.ipynb --to slides --post serve
+python grokking_mnist.py --requireGPU --total_steps 100000
 ```
 
 ## What to Explore Next
