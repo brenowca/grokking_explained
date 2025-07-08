@@ -26,7 +26,8 @@ class ClusteredEMNIST(torch.utils.data.Dataset):
     def __init__(self, original_dataset, encoder, clustering, num_unique_labels, clusters_per_class=None, device=None, batch_size=64):
         self.original_dataset = original_dataset
         self.device = device if device else torch.device(
-            "cuda" if torch.cuda.is_available() else "cpu")
+            "cuda" if torch.cuda.is_available() else "mps" 
+                      if torch.backends.mps.is_available() else "cpu")
         self.sub_class, self.idx_col = self._generate_new_column(
             original_dataset, encoder, clustering, num_unique_labels, clusters_per_class, batch_size)
         assert len(original_dataset), len(self.sub_class)

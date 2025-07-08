@@ -17,9 +17,9 @@ import os
 from os.path import join as path_join
 import json
 
-# Check if a GPU is available and use it, otherwise use the CPU
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-device
+# Use CUDA if available, MPS (Metal Performance Shaders) backend if available on Apple devices, otherwise use CPU
+device = torch.device("cuda" if torch.cuda.is_available() else "mps" 
+                      if torch.backends.mps.is_available() else "cpu")
 
 models = {"mlp":lambda input=117, output=3: MLP(input, 256, output, 3),
           "2-layer_transformer": lambda input=117, output=10: TransformerClassifier(input_dim=input, d_model=128, num_layers=2, num_classes=output, nhead=4)}
