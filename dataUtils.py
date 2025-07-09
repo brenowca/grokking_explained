@@ -268,39 +268,37 @@ def balanced_df_sample(df, num_samples, target, random_state=42):
 
 
 def unbalanced_df_sample(df, num_samples, target, underrepresented_classes, fraction, random_state=42):
+    """Sample ``num_samples`` rows from ``df`` with controlled imbalance."""
+
     df_classes = df[target].unique().tolist()
-    regular_classes = [
-        c for c in df_classes if c not in underrepresented_classes]
-    intersect_classes = [
-        c for c in underrepresented_classes if c in df_classes]
-    assert len(
-        regular_classes) > 0, "There are as many or more underrepresented classes than classes"
+    regular_classes = [c for c in df_classes if c not in underrepresented_classes]
+    intersect_classes = [c for c in underrepresented_classes if c in df_classes]
+    assert len(regular_classes) > 0, (
+        "There are as many or more underrepresented classes than classes")
 
-    weighted_num_classes = len(regular_classes) + \
-        len(intersect_classes)*(fraction)
-    sample_size_per_class = num_samples/weighted_num_classes
-    print(
-        f"Sample size per class: {sample_size_per_class}/{len(regular_classes)} [{weighted_num_classes}]")
-    # Create an empty DataFrame to store the balanced samples
-    unbalanced_df = pd.DataFrame(columns=df.columns)
+    weights = {c: (fraction if c in intersect_classes else 1.0) for c in df_classes}
+    weighted_sum = sum(weights.values())
+    sample_sizes = {
+        c: int(round(num_samples * weights[c] / weighted_sum)) for c in df_classes
+    }
+    diff = num_samples - sum(sample_sizes.values())
+    if diff != 0:
+        remainders = {
+            c: num_samples * weights[c] / weighted_sum - sample_sizes[c]
+            for c in df_classes
+        }
+        ordered = sorted(df_classes, key=lambda c: remainders[c], reverse=(diff > 0))
+        for c in ordered[:abs(diff)]:
+            sample_sizes[c] += 1 if diff > 0 else -1
 
-    # Iterate through unique 'class' values
-    for class_label in df[target].unique():
-        # Sample 'sample_size_per_class' random samples for each 'class'
-        if class_label in intersect_classes:
-            sample_size = int(np.ceil(sample_size_per_class*fraction))
-        else:
-            sample_size = int(sample_size_per_class)
-        class_samples = df[df[target] == class_label].sample(
-            sample_size, random_state=random_state)
-        if len(class_samples):
-            unbalanced_df = pd.concat([unbalanced_df, class_samples], axis=0)
-        else:
-            print(f"Empty class {class_label}")
+    frames = []
+    for cls in df_classes:
+        n = sample_sizes[cls]
+        if n <= 0:
+            continue
+        frames.append(df[df[target] == cls].sample(n, random_state=random_state))
 
-    # Reset the index of the balanced DataFrame
-    unbalanced_df.reset_index(drop=True, inplace=True)
-    # print(unbalanced_df)
+    unbalanced_df = pd.concat(frames, axis=0).reset_index(drop=True)
     print(f"Unbalanced dataset size {len(unbalanced_df)}")
     return unbalanced_df
 
@@ -333,38 +331,36 @@ def unbalanced_double_it_class_sampler_factory(underrepresented_classes, fractio
 
 
 def dataset_sampler(dataset, num_samples, fraction, classes_a, classes_b):
-    weighted_num_classes = len(classes_a)*(fraction) + len(classes_b)
-    sample_size_per_class = num_samples/weighted_num_classes
+    """Return a ``Subset`` with an imbalanced class distribution."""
 
-    sample_size_a = int(np.ceil(sample_size_per_class*fraction))
-    sample_size_b = int(sample_size_per_class)
+    all_classes = list(classes_a) + list(classes_b)
+    weights = {c: (fraction if c in classes_a else 1.0) for c in all_classes}
+    weighted_sum = sum(weights.values())
+    sample_sizes = {
+        c: int(round(num_samples * weights[c] / weighted_sum)) for c in all_classes
+    }
+    diff = num_samples - sum(sample_sizes.values())
+    if diff != 0:
+        remainders = {
+            c: num_samples * weights[c] / weighted_sum - sample_sizes[c]
+            for c in all_classes
+        }
+        ordered = sorted(all_classes, key=lambda c: remainders[c], reverse=(diff > 0))
+        for c in ordered[:abs(diff)]:
+            sample_sizes[c] += 1 if diff > 0 else -1
 
-    # Initialize dictionaries to store indices for each class
     class_indices = defaultdict(list)
-
-    # Collect indices for each class
     for idx, (_, label) in enumerate(torch.utils.data.DataLoader(dataset, batch_size=1, num_workers=0, shuffle=True)):
         class_indices[label.item()].append(idx)
-
-    # Shuffle indices within each class
     for class_id in class_indices:
         np.random.shuffle(class_indices[class_id])
 
-    # Downsample classes
     downsampled_indices = []
-    for class_id in classes_a:
-        # Fraction of samples per class
-        downsampled_indices.extend(class_indices[class_id][:sample_size_a])
-    for class_id in classes_b:
-        # Original number of samples per class
-        downsampled_indices.extend(class_indices[class_id][:sample_size_b])
+    for c in all_classes:
+        downsampled_indices.extend(class_indices[c][: sample_sizes[c]])
 
-    # Shuffle the combined indices to ensure randomness
     np.random.shuffle(downsampled_indices)
-
-    # Create the new dataset
-    new_dataset = Subset(dataset, downsampled_indices)
-    return new_dataset
+    return Subset(dataset, downsampled_indices)
 
 
 df_doubleit = pd.read_csv(
