@@ -35,7 +35,6 @@ clusterings: Dict[str, Dict[str, str]] = {
 
 # EMNIST_SPLITS = ('byclass', 'bymerge', 'balanced', 'letters', 'digits', 'mnist', 'mnist_10')
 EMNIST_SPLITS = clusterings.keys()
-EMNIST_ROOT = 'datasets/emnist'
 
 
 def main(args, exps_folder, fraction):
@@ -128,7 +127,7 @@ if __name__ == "__main__":
         # Write parameters to YAML file
         params = vars(args)
         params["fraction"] = [fraction]
-        exps_folder = path_join(args.exps_folder, f"{args.emnist_split}_{[fraction]}frac")
+        exps_folder = path_join(args.exps_folder, f"{args.emnist_split}_frac{[fraction]}")
         print(f"{'-'*10} Fraction - {fraction} {'-'*10}")
         makedirs(exps_folder, exist_ok=True)
 
