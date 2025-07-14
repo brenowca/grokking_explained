@@ -55,20 +55,29 @@ def defaultMLPinit():
 
 
 class TransformerClassifier(nn.Module):
-    def __init__(self, input_dim, d_model, nhead, num_layers, num_classes, dim_feedforward=2048, dropout=0.1):
+    def __init__(self, input_dim, d_model, nhead, num_layers, num_classes, max_seq_len=200, dim_feedforward=2048, dropout=0.1):
         super(TransformerClassifier, self).__init__()
+        params = f"{input_dim}_{d_model}_{nhead}_{num_layers}_{max_seq_len}_{dim_feedforward}"
+        self.name= f"Transformer_{params}"
+        
+        # 1. Input Embedding/Projection Layer
+        self.embedding = nn.Linear(input_dim, d_model)
         
         # Positional Encoding
-        self.positional_encoding = nn.Parameter(torch.zeros(1, input_dim, d_model))
+        self.positional_encoding = nn.Parameter(torch.zeros(1, max_seq_len, d_model))
         
-        # Transformer Encoder
-        encoder_layer = nn.TransformerEncoderLayer(d_model=d_model, nhead=nhead, dim_feedforward=dim_feedforward, dropout=dropout)
+        encoder_layer = nn.TransformerEncoderLayer(d_model=d_model, nhead=nhead, dim_feedforward=dim_feedforward, dropout=dropout, batch_first=True)
         self.transformer_encoder = nn.TransformerEncoder(encoder_layer, num_layers=num_layers)
         
         # Classification Head
         self.fc = nn.Linear(d_model, num_classes)
         
     def forward(self, x):
+        # 3. Apply the embedding layer first
+        # Input x shape: (batch_size, seq_len, input_dim)
+        x = self.embedding(x.unsqueeze(1))
+        # Now x shape: (batch_size, seq_len, d_model)
+        
         # Add positional encoding
         x += self.positional_encoding[:, :x.size(1), :]
         

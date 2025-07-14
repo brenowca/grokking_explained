@@ -1,10 +1,10 @@
 # Utils
 from os.path import join as path_join
 from os import makedirs
-from trainUtils import DecoderTransformer, run_on_dataset, MLP
+from trainUtils import TransformerClassifier, run_on_dataset, MLP
 
 
-datasets = {"similar":{"train":"datasets/V0_binaryTreeMultiDim_distSuperClasses_ns_10000_ndg_9_ndpg_13_train.csv",
+datasets = {"equivariant":{"train":"datasets/V0_binaryTreeMultiDim_distSuperClasses_ns_10000_ndg_9_ndpg_13_train.csv",
                         "test":"datasets/V0_binaryTreeMultiDim_distSuperClasses_ns_10000_ndg_9_ndpg_13_test.csv",
                         "all":"datasets/V0_binaryTreeMultiDim_distSuperClasses_ns_10000_ndg_9_ndpg_13.csv"},
             
@@ -14,7 +14,7 @@ datasets = {"similar":{"train":"datasets/V0_binaryTreeMultiDim_distSuperClasses_
 
 
 models = {"mlp":lambda: MLP(117, 256, 4, 3),
-          "2-layer_transformer": lambda: DecoderTransformer(input_dim=117, hidden_dim=128, num_layers=2, num_heads=4)}
+          "2-layer_transformer": lambda: TransformerClassifier(input_dim=117, d_model=128, num_layers=2, num_classes=4, nhead=4)}
 
 
 def main(args, exps_folder, fraction):
@@ -87,7 +87,7 @@ if __name__ == "__main__":
     parser.add_argument("--model", type=str, choices = models.keys(), default="mlp", help="DL model to be used in this experiment instance")
 
     parser.add_argument("--exps_folder", type=str,
-                        default=f"experiments/exp_{timestr}_{hash}")
+                        default=f"experiments/exp_synthetic_{timestr}_{hash}")
     parser.add_argument("--requireGPU", action='store_true', help="Only runs if there is a GPU available")
 
     args = parser.parse_args()
